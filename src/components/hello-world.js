@@ -1,22 +1,38 @@
-const template = document.createElement('template');
-template.innerHTML = `
-  <style>
-    :host{display:block}
-    .wrap{
-      padding:12px 16px;
-      border-radius:8px;
-      background:var(--accent,#eef);
-      color:var(--text,#111);
-      font-weight:600;
-    }
-  </style>
-  <div class="wrap"><slot>Hallo Welt!</slot></div>
-`;
-
 class HelloWorld extends HTMLElement {
-  constructor(){
+  // Observe `text` attribute; when it changes we re-render
+  static get observedAttributes() {
+    return ['text'];
+  }
+
+  constructor() {
     super();
-    this.attachShadow({mode:'open'}).appendChild(template.content.cloneNode(true));
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue !== newValue) this.render();
+  }
+
+  render() {
+    const textAttr = this.getAttribute('text');
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host{display:block}
+        .wrap{
+          padding:12px 16px;
+          border-radius:8px;
+          background:var(--accent,#eef);
+          color:var(--text,#111);
+          font-weight:600;
+        }
+      </style>
+      <div class="wrap">${textAttr ? String(textAttr) : 'khdbkfdah<slot>Hallo Welt!</slot>'}</div>
+    `;
   }
 }
 
