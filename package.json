@@ -1,0 +1,11 @@
+{
+  "name": "ohrwerkstatt",
+  "version": "0.0.0",
+  "private": true,
+  "devDependencies": {
+    "prettier": "^2.8.8"
+  },
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,css,html,json,md}\""
+  }
+}
