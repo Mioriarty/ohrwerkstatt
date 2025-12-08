@@ -28,7 +28,9 @@ h3 {
   --primary: #f97316;
   --primary-hover: #ea580c;
   --success: #16a34a;
+  --success-light: #f0fdf4;
   --error: #dc2626;
+  --error-light: #fef2f2;
 
   --text: #1c1917;
   --text-muted: #78716c;

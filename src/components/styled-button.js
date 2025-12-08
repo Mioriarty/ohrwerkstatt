@@ -1,130 +1,129 @@
-class StyledButton extends HTMLElement {
-  static get observedAttributes() {
-    return ['disabled', 'type', 'name', 'value', 'label', 'variant'];
-  }
+import { LitElement, html, css } from 'https://esm.sh/lit';
+
+export class StyledButton extends LitElement {
+  static properties = {
+    disabled: { type: Boolean, reflect: true },
+    type: { type: String, reflect: true },
+    name: { type: String, reflect: true },
+    value: { type: String, reflect: true },
+    label: { type: String, reflect: true },
+    variant: { type: String, reflect: true },
+    size: { type: String, reflect: true },
+    fullRow: { type: Boolean, reflect: true },
+  };
 
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this._btn = null;
-    this._onInternalClick = this._onInternalClick.bind(this);
-    this._onHostKeydown = this._onHostKeydown.bind(this);
+    this.type = 'button';
+    this.size = 'small';
+    this.disabled = false;
+    this.fullRow = false;
   }
 
+  static styles = css`
+    :host {
+      display: inline-block;
+      line-height: 0;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      background: var(--btn-bg, #0f62fe);
+      color: var(--btn-color, #fff);
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    ::slotted([slot='icon-left']),
+    ::slotted([slot='icon-right']) {
+      display: inline-flex;
+      width: 1em;
+      height: 1em;
+      align-items: center;
+      justify-content: center;
+    }
+    ::slotted(svg) {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+    }
+
+    .variant-primary {
+      background: linear-gradient(135deg, var(--primary, #0f62fe), var(--primary-hover, #0b4fd6));
+    }
+    .size-big {
+      padding: 1rem 2rem;
+      font-size: 1.05rem;
+    }
+    .size-small {
+      padding: 0.5rem 1rem;
+    }
+    .full-row {
+      width: 100%;
+    }
+  `;
+
   connectedCallback() {
-    this.render();
+    super.connectedCallback();
     if (!this.hasAttribute('tabindex')) this.setAttribute('tabindex', '0');
     this.addEventListener('keydown', this._onHostKeydown);
   }
 
   disconnectedCallback() {
+    super.disconnectedCallback();
     this.removeEventListener('keydown', this._onHostKeydown);
-    if (this._btn) this._btn.removeEventListener('click', this._onInternalClick);
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue) this.render();
-  }
-
-  _onInternalClick(e) {
-    const ev = new MouseEvent('click', e);
-    this.dispatchEvent(ev);
   }
 
   _onHostKeydown(e) {
-    if (!this._btn || this._btn.disabled) return;
+    if (this.disabled) return;
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
-      this._btn.click();
+      // trigger the internal button click; this fires the host click normally
+      this.shadowRoot.querySelector('button')?.click();
     }
   }
 
   render() {
-    const disabled = this.hasAttribute('disabled');
-    const type = this.getAttribute('type') || 'button';
-    const name = this.getAttribute('name');
-    const value = this.getAttribute('value');
-    const label = this.getAttribute('label');
-    const variant = this.getAttribute('variant');
-    const size = this.getAttribute('size');
+    const variantClass = this.variant ? `variant-${this.variant}` : '';
+    const sizeClass = this.size ? `size-${this.size}` : 'size-small';
+    const fullRowClass = this.fullRow ? 'full-row' : '';
 
-    const nameAttr = name ? ` name="${name}"` : '';
-    const valueAttr = value ? ` value="${value}"` : '';
-    const disabledAttr = disabled ? ' disabled' : '';
-    const variantClass = variant ? ` variant-${variant}` : '';
-    const sizeClass = size ? ` size-${size}` : 'size-small';
-
-    this.shadowRoot.innerHTML = `
-        <style>
-          :host { display: inline-block; line-height: 0; }
-          .btn {
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            text-align: center;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            background: var(--btn-bg, #0f62fe);
-            color: var(--btn-color, #fff);
-            font-family: inherit;
-            font-size: 0.95rem;
-            line-height: 1;
-          }
-
-          .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-          .btn:active { transform: translateY(0); }
-
-          .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-          }
-
-          ::slotted([slot="icon-left"]), ::slotted([slot="icon-right"]) {
-            display: inline-flex;
-            width: 1em;
-            height: 1em;
-            align-items: center;
-            justify-content: center;
-          }
-
-          ::slotted(svg) { width: 1em; height: 1em; fill: currentColor; }
-            
-
-          .btn.variant-primary {
-              background: linear-gradient(135deg, var(--primary, #0f62fe), var(--primary-hover, #0b4fd6));
-          }
-
-          .btn.size-big {
-              padding: 1rem 2rem;
-              font-size: 1.05rem;
-          }
-
-          .btn.size-small {
-              padding: 0.5rem 1rem;
-           }
-        </style>
-
-        <button part="button" class="btn ${variantClass} ${sizeClass}" type="${type}"${nameAttr}${valueAttr}${disabledAttr}>
-          <slot name="icon-left"></slot>
-          ${label ? String(label) : '<slot></slot>'}
-          <slot name="icon-right"></slot>
-        </button>
-      `;
-
-    if (this._btn) this._btn.removeEventListener('click', this._onInternalClick);
-    this._btn = this.shadowRoot.querySelector('button');
-    if (this._btn) this._btn.addEventListener('click', this._onInternalClick);
+    return html`
+      <button
+        part="button"
+        class="${variantClass} ${sizeClass} ${fullRowClass}"
+        .disabled=${this.disabled}
+        .type=${this.type}
+        .name=${this.name || ''}
+        .value=${this.value || ''}
+      >
+        <slot name="icon-left"></slot>
+        ${this.label ? this.label : html`<slot></slot>`}
+        <slot name="icon-right"></slot>
+      </button>
+    `;
   }
 }
 
-if (!customElements.get('styled-button')) {
-  customElements.define('styled-button', StyledButton);
-}
-
-export default StyledButton;
+customElements.define('styled-button', StyledButton);

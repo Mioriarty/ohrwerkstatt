@@ -1,111 +1,105 @@
-import './styled-button.js';
+import { LitElement, html, css } from 'https://esm.sh/lit';
 
-class ListenButton extends HTMLElement {
+export class ListenButton extends LitElement {
+  static properties = {
+    label: { type: String },
+    variant: { type: String },
+    size: { type: String },
+    sounds: { type: String }, // comma-separated or JSON string
+  };
+
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this._hostClick = this._hostClick.bind(this);
+    this.label = 'Listen';
+    this.variant = '';
+    this.size = '';
+    this.sounds = ''; // user can set: <listen-button sounds="tone1.wav,tone2.wav">
+    this._audios = [];
+  }
 
-    // static wav files to play on click (place these files relative to this module)
-    this._soundFiles = [
-      new URL('./sounds/tone1.wav', import.meta.url).href,
-      new URL('./sounds/tone2.wav', import.meta.url).href,
-    ];
-    this._audios = this._soundFiles.map((src) => {
-      const a = new Audio(src);
+  updated(changed) {
+    if (changed.has('sounds')) {
+      this._loadSounds();
+    }
+  }
+
+  _loadSounds() {
+    let list = [];
+    try {
+      // allow JSON array or comma-separated string
+      list = JSON.parse(this.sounds);
+      if (!Array.isArray(list)) list = [this.sounds];
+    } catch {
+      list = this.sounds
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+
+    this._audios = list.map((src) => {
+      const url = new URL(src, import.meta.url).href;
+      const a = new Audio(url);
       a.preload = 'auto';
       return a;
     });
   }
 
-  connectedCallback() {
-    this.render();
-    const inner = this.shadowRoot.querySelector('styled-button');
-    if (inner) inner.addEventListener('click', this._hostClick);
+  _playAll() {
+    // restart & play every audio at same time
+    this._audios.forEach((a) => {
+      a.currentTime = 0;
+      a.play().catch(() => {});
+    });
   }
 
-  disconnectedCallback() {
-    const inner = this.shadowRoot.querySelector('styled-button');
-    if (inner) inner.removeEventListener('click', this._hostClick);
-  }
+  _onClick() {
+    this._playAll();
 
-  _playSequentially() {
-    // play configured audios in sequence
-    return this._audios.reduce((p, audio) => {
-      return p.then(() => {
-        audio.currentTime = 0;
-        // play returns a promise; ensure we wait until it ends
-        const playPromise = audio.play().catch(() => Promise.resolve());
-        return playPromise.then(
-          () =>
-            new Promise((resolve) => {
-              // if the audio already ended or couldn't play, resolve immediately when ended fires
-              const onEnded = () => {
-                audio.removeEventListener('ended', onEnded);
-                resolve();
-              };
-              audio.addEventListener('ended', onEnded);
-            })
-        );
-      });
-    }, Promise.resolve());
-  }
-
-  _hostClick(e) {
-    // run play sequence but don't block UI
-    this._playSequentially().catch(() => {});
-    // re-dispatch click from this component so external listeners still work
+    // re-dispatch click
     this.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
   }
 
+  static styles = css`
+    :host {
+      display: inline-block;
+    }
+
+    styled-button::part(button) {
+      background: var(--bg-muted);
+      color: var(--text);
+      border: 2px solid var(--border);
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin: 0.5rem;
+      border-radius: 12px;
+    }
+
+    styled-button::part(button):hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    styled-button[disabled]::part(button) {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  `;
+
   render() {
-    const label = this.getAttribute('label') || 'Listen';
-    const variant = this.getAttribute('variant') || '';
-    const size = this.getAttribute('size') || '';
+    return html`
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      />
 
-    this.shadowRoot.innerHTML = `
-            <style>
-                :host { display: inline-block; }
-
-                /* Target the inner button via part exposed by styled-button */
-                styled-button::part(button) {
-                    background: var(--bg-muted);
-                    color: var(--text);
-                    border: 2px solid var(--border);
-                    padding: 0.75rem 1rem;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    margin: 0.5rem;
-                    border-radius: 12px;
-                }
-
-                styled-button::part(button):hover {
-                    background: var(--primary);
-                    color: #fff;
-                    border-color: var(--primary);
-                }
-
-                /* small visual tweak when disabled */
-                styled-button[disabled]::part(button) {
-                    opacity: 0.6;
-                    cursor: not-allowed;
-                }
-            </style>
-            <link
-                rel="stylesheet"
-                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-            />
-
-            <styled-button ${variant ? `variant="${variant}"` : ''} ${size ? `size="${size}"` : ''}>
-                <i class="fas fa-play"></i>
-                ${label}
-            </styled-button>
-        `;
+      <styled-button @click=${this._onClick} variant=${this.variant} size=${this.size}>
+        <i class="fas fa-play"></i>
+        ${this.label}
+      </styled-button>
+    `;
   }
 }
 
-if (!customElements.get('listen-button')) {
-  customElements.define('listen-button', ListenButton);
-}
-
-export default ListenButton;
+customElements.define('listen-button', ListenButton);

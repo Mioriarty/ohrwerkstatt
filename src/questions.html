@@ -10,8 +10,57 @@
     />
     <link rel="stylesheet" href="styles/global.css" />
     <script type="module" src="components/index.js" defer></script>
+    <script>
+      const numQuestions = 2;
+      const questionNumberOffset = -1;
+
+      function registerEvents() {
+        for (let i = 0; i < numQuestions; i++) {
+          const question = document.getElementById('q' + i);
+          question.addEventListener('answered', handleAnswer);
+        }
+      }
+
+      function handleAnswer(event) {
+        const { correct, selectedAnswer, questionNumber } = event.detail;
+        const questionIndex = questionNumber + questionNumberOffset;
+        const crntQuestion = document.getElementById('q' + questionIndex);
+        crntQuestion.setAttribute('state', correct ? 'correct' : 'incorrect');
+        crntQuestion.setAttribute('highlightCorrect', true);
+        if (!correct) {
+          crntQuestion.setAttribute('highlightIncorrect', selectedAnswer);
+        }
+
+        if (questionIndex < numQuestions - 1) {
+          const nextQuestion = document.getElementById('q' + (questionIndex + 1));
+          nextQuestion.setAttribute('state', 'active');
+        } else {
+          document.getElementById('continue').removeAttribute('disabled');
+        }
+      }
+
+      function handleContinue() {}
+    </script>
+    <style>
+      .big-question-container {
+        display: grid;
+        gap: 0.5rem;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 750px) {
+        .big-question-container {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .continue-container {
+        margin-top: 1.5rem;
+        text-align: right;
+      }
+    </style>
   </head>
-  <body>
+  <body onload="registerEvents()">
     <div id="container">
       <div class="content-wrapper">
         <div id="invisibleBox">
@@ -22,10 +71,37 @@
               </div>
               <listen-button
                 label="Play Question Audio"
-                src="assets/audio/question1.mp3"
+                sounds="tonspur_fertig.wav"
                 variant="primary"
                 size="big"
               ></listen-button>
+              <div class="big-question-container">
+                <big-question
+                  state="active"
+                  question="My Question is whether this is true?"
+                  description="This is a detailed description of the question."
+                  questionNumber="1"
+                  answers='["Answer 1", "Answer 2", "Answer 3", "Answer 4"]'
+                  correctAnswer="2"
+                  onAnswered="test()"
+                  id="q0"
+                ></big-question>
+                <big-question
+                  state="disabled"
+                  question="My Question is whether this is true?"
+                  description="This is a detailed description of the question."
+                  questionNumber="2"
+                  answers='["Answer 1", "Answer 2", "Answer 3", "Answer 4"]'
+                  correctAnswer="2"
+                  onAnswered="test()"
+                  id="q1"
+                ></big-question>
+              </div>
+              <div class="continue-container">
+                <styled-button variant="primary" disabled id="continue"
+                  >Continue to next page<i class="fas fa-play"></i
+                ></styled-button>
+              </div>
             </div>
           </div>
         </div>
