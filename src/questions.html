@@ -16,21 +16,42 @@
       const questionNumberOffset = -1;
       let questions;
 
+      let totalAnswers = 0;
+      let correctAnswers = 0;
+      let pageNumber = 1;
+      let totalPages = 4;
+
       function registerEvents() {
         questions = generateQuestions('wrong-voice');
         for (let i = 0; i < numQuestions; i++) {
           const question = document.getElementById('q' + i);
+          question.removeEventListener('answered', handleAnswer);
           question.addEventListener('answered', handleAnswer);
           question.setAttribute('question', questions.questions[i].question);
           question.setAttribute('answers', JSON.stringify(questions.questions[i].answers));
           question.setAttribute('correctAnswer', questions.questions[i].correctAnswer);
+          question.setAttribute('state', i === 0 ? 'active' : 'disabled');
+          question.removeAttribute('highlightCorrect');
+          question.removeAttribute('highlightIncorrect');
         }
 
-      document.getElementById('listen-audio').addEventListener('click', questions.onPlay);
+        // Reset audio listen button
+        let listenAudioBtn = document.getElementById("listen-audio");
+        listenAudioBtn = listenAudioBtn.cloneNode(true);
+        listenAudioBtn.addEventListener('click', questions.onPlay);
+        document.getElementById("listen-audio").replaceWith(listenAudioBtn);
+
+        // Set Page number
+        document.getElementById('pageNumber').innerText = `Page ${pageNumber} of ${totalPages}`;
+      
       }
+      
 
       function handleAnswer(event) {
         const { correct, selectedAnswer, questionNumber } = event.detail;
+        totalAnswers += 1;
+        if (correct) correctAnswers += 1;
+
         const questionIndex = questionNumber + questionNumberOffset;
         const crntQuestion = document.getElementById('q' + questionIndex);
         crntQuestion.setAttribute('state', correct ? 'correct' : 'incorrect');
@@ -47,7 +68,26 @@
         }
       }
 
-      function handleContinue() {}
+      function handleContinue() {
+        const contentWrapper = document.getElementById('contentWrapper');
+
+        contentWrapper.classList.remove('faded-in');
+        contentWrapper.classList.add('faded-out');
+        pageNumber += 1;
+
+        setTimeout(() => {
+          registerEvents();
+          
+          if(pageNumber > totalPages) {
+            // Go to final page
+            window.location.href = 'final.html';
+            return;
+          }
+
+          contentWrapper.classList.remove('faded-out');
+          contentWrapper.classList.add('faded-in');
+        }, 300);
+      }
     </script>
     <style>
       .big-question-container {
@@ -70,16 +110,28 @@
       .audio-button-container {
         margin-bottom: 1rem;
       }
+
+      .faded-out {
+        opacity: 0.0;
+        pointer-events: none;
+        transition: opacity 300ms ease-in;
+      }
+
+      .faded-in {
+        opacity: 1.0;
+        pointer-events: all;
+        transition: opacity 300ms ease-in;
+      }
     </style>
   </head>
   <body onload="registerEvents()">
     <div id="container">
-      <div class="content-wrapper">
+      <div class="content-wrapper faded-in" id="contentWrapper">
         <div id="invisibleBox">
           <div id="main-container">
             <div class="welcome-section">
               <div class="flex-column ai-center">
-                <p class="text-muted text-center">Page 1 of 4</p>
+                <p class="text-muted text-center" id="pageNumber">Page 1 of 4</p>
               </div>
               <div class="audio-button-container">
               <styled-button
@@ -96,7 +148,6 @@
                   questionNumber="1"
                   answers='["Answer 1", "Answer 2", "Answer 3", "Answer 4"]'
                   correctAnswer="2"
-                  onAnswered="test()"
                   id="q0"
                 ></big-question>
                 <big-question
@@ -106,12 +157,11 @@
                   questionNumber="2"
                   answers='["Answer 1", "Answer 2", "Answer 3", "Answer 4"]'
                   correctAnswer="2"
-                  onAnswered="test()"
                   id="q1"
                 ></big-question>
               </div>
               <div class="continue-container">
-                <styled-button variant="primary" disabled id="continue"
+                <styled-button variant="primary" disabled id="continue" onclick="handleContinue()"
                   >Continue to next page<i class="fas fa-play"></i
                 ></styled-button>
               </div>
