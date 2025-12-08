@@ -10,15 +10,23 @@
     />
     <link rel="stylesheet" href="styles/global.css" />
     <script type="module" src="components/index.js" defer></script>
+    <script src="./scripts/question-generator.js"></script>
     <script>
       const numQuestions = 2;
       const questionNumberOffset = -1;
+      let questions;
 
       function registerEvents() {
+        questions = generateQuestions('wrong-voice');
         for (let i = 0; i < numQuestions; i++) {
           const question = document.getElementById('q' + i);
           question.addEventListener('answered', handleAnswer);
+          question.setAttribute('question', questions.questions[i].question);
+          question.setAttribute('answers', JSON.stringify(questions.questions[i].answers));
+          question.setAttribute('correctAnswer', questions.questions[i].correctAnswer);
         }
+
+      document.getElementById('listen-audio').addEventListener('click', questions.onPlay);
       }
 
       function handleAnswer(event) {
@@ -58,6 +66,10 @@
         margin-top: 1.5rem;
         text-align: right;
       }
+
+      .audio-button-container {
+        margin-bottom: 1rem;
+      }
     </style>
   </head>
   <body onload="registerEvents()">
@@ -69,12 +81,13 @@
               <div class="flex-column ai-center">
                 <p class="text-muted text-center">Page 1 of 4</p>
               </div>
-              <listen-button
-                label="Play Question Audio"
-                sounds="tonspur_fertig.wav"
-                variant="primary"
-                size="big"
-              ></listen-button>
+              <div class="audio-button-container">
+              <styled-button
+                variant="secondary"
+                id="listen-audio"
+                ><i class="fas fa-play"></i>Play Question Audio</i
+              ></styled-button>
+            </div>
               <div class="big-question-container">
                 <big-question
                   state="active"

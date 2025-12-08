@@ -29,7 +29,6 @@ export class StyledButton extends LitElement {
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      font-weight: 600;
       text-align: center;
       transition: all 0.2s ease;
       display: flex;
@@ -72,12 +71,31 @@ export class StyledButton extends LitElement {
     .variant-primary {
       background: linear-gradient(135deg, var(--primary, #0f62fe), var(--primary-hover, #0b4fd6));
     }
+
+    .variant-secondary {
+      background: var(--bg-muted);
+      color: var(--text);
+      border: 2px solid var(--border);
+    }
+
+    .variant-secondary:hover:not([disabled]) {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .variant-secondary[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .size-big {
       padding: 1rem 2rem;
       font-size: 1.05rem;
     }
     .size-small {
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
     }
     .full-row {
       width: 100%;
