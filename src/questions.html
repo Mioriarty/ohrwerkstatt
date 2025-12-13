@@ -80,7 +80,7 @@
           
           if(pageNumber > totalPages) {
             // Go to final page
-            window.location.href = 'final.html';
+            window.location.href = 'final.html?totalAnswers=' + totalAnswers + '&correctAnswers=' + correctAnswers;
             return;
           }
 

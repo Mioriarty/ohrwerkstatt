@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ohrwerkstatt</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles/global.css" />
+    <script type="module" src="components/index.js" defer></script>
+    <script>
+      function fillPage() {
+        totalAnswers = new URLSearchParams(new URL(window.location.href).search).get(
+          'totalAnswers'
+        );
+        correctAnswers = new URLSearchParams(new URL(window.location.href).search).get(
+          'correctAnswers'
+        );
+        document.getElementById(
+          'results-text'
+        ).innerText = `You have answered ${correctAnswers} out of ${totalAnswers} questions correctly.`;
+        const percent = Math.round((correctAnswers / totalAnswers) * 100);
+        const progressFill = document.querySelector('.progress-fill');
+        progressFill.style.setProperty('--percent', percent + '%');
+        progressFill.innerText = percent + ' %';
+      }
+    </script>
+  </head>
+  <body onload="fillPage()">
+    <div id="container">
+      <div class="content-wrapper">
+        <div id="invisibleBox">
+          <div id="main-container">
+            <div class="welcome-section">
+              <div class="flex-column ai-center">
+                <h1>Congratulations</h1>
+                <p
+                  class="text-muted text-center"
+                  style="max-width: 500px; margin-bottom: 1rem"
+                  id="results-text"
+                >
+                  You have answered x out of y questions correctly.
+                </p>
+                <div class="progress">
+                  <div class="progress-fill" style="--percent: 65%">65 %</div>
+                </div>
+                <styled-button
+                  variant="primary"
+                  size="big"
+                  onclick="window.location.href='questions.html'"
+                >
+                  <i class="fas fa-repeat"></i>
+                  Go again
+                </styled-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
